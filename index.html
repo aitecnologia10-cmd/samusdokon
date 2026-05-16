@@ -47,7 +47,7 @@
         }
         .card img {
             width: 100%;
-            height: 165px;
+            height: 150px;
             object-fit: cover;
         }
         .card-info {
@@ -58,27 +58,33 @@
             justify-content: space-between;
             flex-grow: 1;
         }
-        .variant-title { font-weight: 600; color: #2c3e50; margin-bottom: 4px; }
-        .variant-sizes { 
-            color: #e74c3c; 
-            font-size: 11px; 
-            background: #fdf2f2; 
-            padding: 3px 6px; 
-            border-radius: 4px; 
-            margin-top: 4px;
-            font-weight: bold;
-            display: inline-block;
-        }
-        .variant-price { color: #27ae60; font-weight: 700; margin-top: 5px; font-size: 14px; }
+        .variant-title { font-weight: 600; color: #2c3e50; margin-bottom: 8px; }
         
-        .info-box {
-            background: white;
-            padding: 20px;
-            border-radius: 12px;
-            text-align: center;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-            margin-top: 20px;
+        /* 📏 RAZMER TUGMALARI DIZAYNI (HAQIQIY DO'KONDEK) */
+        .size-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-top: 8px;
         }
+        .size-btn {
+            background: #f0f2f5;
+            border: 1px solid #dcdde1;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: bold;
+            color: #333;
+            transition: 0.1s;
+        }
+        .size-btn.active {
+            background: #e74c3c;
+            color: white;
+            border-color: #e74c3c;
+        }
+        
+        .variant-price { color: #27ae60; font-weight: 700; margin-top: 8px; font-size: 14px; }
+        .info-box { background: white; padding: 20px; border-radius: 12px; text-align: center; margin-top: 20px; }
     </style>
 </head>
 <body>
@@ -101,6 +107,9 @@
         const urlParams = new URLSearchParams(window.location.search);
         const skuDataRaw = urlParams.get('skus');
         
+        let selectedSku = null;
+        let selectedSize = null;
+
         if (skuDataRaw) {
             try {
                 const skus = JSON.parse(decodeURIComponent(skuDataRaw));
@@ -108,29 +117,31 @@
                 
                 if(skus && skus.length > 0) {
                     grid.innerHTML = "";
-                    document.getElementById('status-text').innerText = "O'zingizga yoqqan rang va o'lchamni tanlang:";
+                    document.getElementById('status-text').innerText = "1. Rangni tanlang, 2. Razmerni bosing:";
                     
                     skus.forEach((sku, index) => {
                         const card = document.createElement('div');
                         card.className = 'card';
-                        card.onclick = () => {
-                            document.querySelectorAll('.card').forEach(c => c.classList.remove('selected'));
-                            card.classList.add('selected');
-                            
-                            tg.MainButton.text = `🛍️ TASDIQLASH: ${sku.specText}`;
-                            tg.MainButton.color = "#2ecc71";
-                            tg.MainButton.show();
-                        };
+                        card.id = `card-${index}`;
 
-                        // Agar rasm xato bo'lsa yoki kelmasa zaxira rasmini qo'yamiz
-                        const imageSrc = sku.imageUrl ? sku.imageUrl : "https://via.placeholder.com/165";
+                        // Razmerlar matnini vergul orqali massivga ajratamiz
+                        const sizeArray = sku.sizes ? sku.sizes.split('-') : ['59', '66', '73', '80'];
+                        let sizeButtonsHTML = '';
+                        
+                        sizeArray.forEach(size => {
+                            if(size.trim()) {
+                                sizeButtonsHTML += `<button class="size-btn" onclick="event.stopPropagation(); changeSize(${index}, '${size.trim()}', this)">${size.trim()}</button>`;
+                            }
+                        });
+
+                        const imageSrc = sku.imageUrl ? sku.imageUrl : "https://via.placeholder.com/150";
 
                         card.innerHTML = `
-                            <img src="${imageSrc}" alt="SaMus">
-                            <div class="card-info">
+                            <img src="${imageSrc}" alt="SaMus" onclick="selectColor(${index}, ${JSON.stringify(sku).replace(/"/g, '&quot;')})">
+                            <div class="card-info" onclick="selectColor(${index}, ${JSON.stringify(sku).replace(/"/g, '&quot;')})">
                                 <div>
                                     <div class="variant-title">${sku.specText}</div>
-                                    <div class="variant-sizes">📐 Razmerlar: ${sku.sizes ? sku.sizes : 'Mavjud'}</div>
+                                    <div class="size-container">${sizeButtonsHTML}</div>
                                 </div>
                                 <div class="variant-price">${sku.price_uzs}</div>
                             </div>
@@ -143,15 +154,55 @@
             }
         }
 
+        // Rang tanlanganda ishlaydi
+        function selectColor(index, sku) {
+            document.querySelectorAll('.card').forEach(c => c.classList.remove('selected'));
+            document.getElementById(`card-${index}`).classList.add('selected');
+            
+            selectedSku = sku;
+            updateMainButton();
+        }
+
+        // Razmer tugmasi bosilganda ishlaydi
+        function changeSize(cardIndex, size, btnElement) {
+            // Avval shu kartadagi barcha faol razmer tugmalarini o'chiramiz
+            const card = document.getElementById(`card-${cardIndex}`);
+            card.querySelectorAll('.size-btn').forEach(b => b.classList.remove('active'));
+            
+            // Bosilgan tugmani qizil rangga o'tkazamiz
+            btnElement.classList.add('active');
+            
+            // Avtomatik ravishda shu kartani (rangni) ham tanlangan deb belgilaymiz
+            const cards = document.querySelectorAll('.card');
+            const skuData = JSON.parse(decodeURIComponent(urlParams.get('skus')))[cardIndex];
+            selectColor(cardIndex, skuData);
+            
+            selectedSize = size;
+            updateMainButton();
+        }
+
+        // Pastdagi Telegram tasdiqlash tugmasini yangilash
+        function updateMainButton() {
+            if (selectedSku) {
+                const sizeText = selectedSize ? ` | Razmer: ${selectedSize}` : " | Razmerni tanlang";
+                tg.MainButton.text = `🛍️ TASDIQLASH: ${selectedSku.specText}${sizeText}`;
+                tg.MainButton.color = selectedSize ? "#2ecc71" : "#95a5a6"; // Razmer tanlansa yashil, bo'lmasa kulrang
+                tg.MainButton.show();
+            }
+        }
+
         if(tg) {
             tg.onEvent('mainButtonClicked', function(){
-                const selectedCard = document.querySelector('.card.selected');
-                if (selectedCard) {
-                    const cards = document.querySelectorAll('.card');
-                    const index = Array.from(cards).indexOf(selectedCard);
-                    const skus = JSON.parse(decodeURIComponent(urlParams.get('skus')));
-                    tg.sendData(JSON.stringify(skus[index]));
+                if (selectedSku && selectedSize) {
+                    // Botga rang va tanlangan o'lchamni birga qo'shib yuboramiz
+                    const resultData = {
+                        ...selectedSku,
+                        "selected_size": selectedSize
+                    };
+                    tg.sendData(JSON.stringify(resultData));
                     tg.close();
+                } else if (!selectedSize) {
+                    tg.showAlert("⚠️ Iltimos, kiyim o'lchamini (razmerini) tanlang!");
                 }
             });
         }
