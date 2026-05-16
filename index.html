@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SaMus Fashion - Ranglar Katalogi</title>
+    <title>SaMus Fashion - Ranglar va O'lchamlar</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         body {
@@ -28,7 +28,7 @@
             display: grid;
             grid-template-columns: repeat(2, 1fr);
             gap: 12px;
-            padding-bottom: 80px;
+            padding-bottom: 90px;
         }
         .card {
             background: #fff;
@@ -39,6 +39,7 @@
             flex-direction: column;
             border: 2.5px solid transparent;
             cursor: pointer;
+            transition: 0.2s;
         }
         .card.selected {
             border-color: #2ecc71;
@@ -52,11 +53,24 @@
         .card-info {
             padding: 10px;
             font-size: 13px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            flex-grow: 1;
         }
-        .variant-title { font-weight: 600; color: #2c3e50; }
-        .variant-price { color: #27ae60; font-weight: 700; margin-top: 5px; }
+        .variant-title { font-weight: 600; color: #2c3e50; margin-bottom: 4px; }
+        .variant-sizes { 
+            color: #e74c3c; 
+            font-size: 11px; 
+            background: #fdf2f2; 
+            padding: 3px 6px; 
+            border-radius: 4px; 
+            margin-top: 4px;
+            font-weight: bold;
+            display: inline-block;
+        }
+        .variant-price { color: #27ae60; font-weight: 700; margin-top: 5px; font-size: 14px; }
         
-        /* 🔔 INFORMATSION BLOK (OQ OYNANING OLDINI OLISh) */
         .info-box {
             background: white;
             padding: 20px;
@@ -76,18 +90,14 @@
 
     <div class="grid-container" id="variants-grid">
         <div class="info-box" style="grid-column: span 2;">
-            <p style="font-weight: bold; color: #2c3e50;">🛍️ SaMus Mini App Tizimi Tayyor!</p>
-            <p style="font-size: 13px; color: #7f8c8d;">Ushbu sahifa Telegram bot orqali guruhdagi tugma bosilganda kiyimlarni ko'rsatadi.</p>
+            <p style="font-weight: bold; color: #2c3e50;">🛍️ Katalog yuklanmoqda...</p>
         </div>
     </div>
 
     <script>
         const tg = window.Telegram.WebApp;
-        if(tg) {
-            tg.expand();
-        }
+        if(tg) { tg.expand(); }
 
-        // URL manzilidan ma'lumotni tekshiramiz
         const urlParams = new URLSearchParams(window.location.search);
         const skuDataRaw = urlParams.get('skus');
         
@@ -97,9 +107,8 @@
                 const grid = document.getElementById('variants-grid');
                 
                 if(skus && skus.length > 0) {
-                    // Agar ma'lumot kelgan bo'lsa, ichidagi eski xabarni o'chirib, setkani chizamiz
                     grid.innerHTML = "";
-                    document.getElementById('status-text').innerText = "O'zingizga yoqqan variantni tanlang:";
+                    document.getElementById('status-text').innerText = "O'zingizga yoqqan rang va o'lchamni tanlang:";
                     
                     skus.forEach((sku, index) => {
                         const card = document.createElement('div');
@@ -111,17 +120,18 @@
                             tg.MainButton.text = `🛍️ TASDIQLASH: ${sku.specText}`;
                             tg.MainButton.color = "#2ecc71";
                             tg.MainButton.show();
-                            
-                            tg.MainButton.onClick(() => {
-                                tg.sendData(JSON.stringify(sku));
-                                tg.close();
-                            });
                         };
 
+                        // Agar rasm xato bo'lsa yoki kelmasa zaxira rasmini qo'yamiz
+                        const imageSrc = sku.imageUrl ? sku.imageUrl : "https://via.placeholder.com/165";
+
                         card.innerHTML = `
-                            <img src="${sku.imageUrl}" alt="SaMus">
+                            <img src="${imageSrc}" alt="SaMus">
                             <div class="card-info">
-                                <div class="variant-title">${sku.specText}</div>
+                                <div>
+                                    <div class="variant-title">${sku.specText}</div>
+                                    <div class="variant-sizes">📐 Razmerlar: ${sku.sizes ? sku.sizes : 'Mavjud'}</div>
+                                </div>
                                 <div class="variant-price">${sku.price_uzs}</div>
                             </div>
                         `;
@@ -131,6 +141,19 @@
             } catch (e) {
                 console.error("Xatolik:", e);
             }
+        }
+
+        if(tg) {
+            tg.onEvent('mainButtonClicked', function(){
+                const selectedCard = document.querySelector('.card.selected');
+                if (selectedCard) {
+                    const cards = document.querySelectorAll('.card');
+                    const index = Array.from(cards).indexOf(selectedCard);
+                    const skus = JSON.parse(decodeURIComponent(urlParams.get('skus')));
+                    tg.sendData(JSON.stringify(skus[index]));
+                    tg.close();
+                }
+            });
         }
     </script>
 </body>
