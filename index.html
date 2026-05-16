@@ -178,7 +178,6 @@
             }
         }
 
-        // 🔥 JAVASCRIPT XATOSI TO'G'RILANDI: sendData xatosiz muloqot qiladi!
         if(tg) {
             tg.onEvent('mainButtonClicked', function(){
                 if (selectedSku && selectedSize) {
@@ -188,7 +187,6 @@
                         "price_uzs": selectedSku.price_uzs,
                         "selected_size": selectedSize
                     };
-                    // Ma'lumotni Telegram botga qaytaramiz
                     tg.sendData(JSON.stringify(resultData));
                     tg.close();
                 } else if (!selectedSize) {
