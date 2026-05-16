@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SaMus Fashion - Ranglar va O'lchamlar</title>
+    <title>SaMus Fashion - Katalog</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         body {
@@ -90,7 +90,7 @@
 
     <div class="header">
         <h3>👑 SaMus Fashion Katalogi 👑</h3>
-        <p id="status-text">Yuklanmoqda...</p>
+        <p id="status-text">Rangni tanlang va o'lcham (razmer) tugmasini bosing:</p>
     </div>
 
     <div class="grid-container" id="variants-grid">
@@ -108,17 +108,17 @@
         
         let selectedSku = null;
         let selectedSize = null;
+        let skusList = [];
 
         if (skuDataRaw) {
             try {
-                const skus = JSON.parse(decodeURIComponent(skuDataRaw));
+                skusList = JSON.parse(decodeURIComponent(skuDataRaw));
                 const grid = document.getElementById('variants-grid');
                 
-                if(skus && skus.length > 0) {
+                if(skusList && skusList.length > 0) {
                     grid.innerHTML = "";
-                    document.getElementById('status-text').innerText = "Rangni tanlang va o'lcham (razmer) tugmasini bosing:";
                     
-                    skus.forEach((sku, index) => {
+                    skusList.forEach((sku, index) => {
                         const card = document.createElement('div');
                         card.className = 'card';
                         card.id = `card-${index}`;
@@ -128,13 +128,13 @@
                         
                         sizeArray.forEach(size => {
                             if(size.trim()) {
-                                sizeButtonsHTML += `<button class="size-btn" onclick="event.stopPropagation(); changeSize(${index}, '${size.trim()}', this)">${size.trim()}</button>`;
+                                sizeButtonsHTML += `<button class="size-btn" id="btn-${index}-${size.trim()}" onclick="event.stopPropagation(); changeSize(${index}, '${size.trim()}')">${size.trim()}</button>`;
                             }
                         });
 
                         card.innerHTML = `
-                            <img src="${sku.imageUrl}" alt="SaMus" onclick="selectColor(${index}, ${JSON.stringify(sku).replace(/"/g, '&quot;')})">
-                            <div class="card-info" onclick="selectColor(${index}, ${JSON.stringify(sku).replace(/"/g, '&quot;')})">
+                            <img src="${sku.imageUrl}" alt="SaMus" onclick="selectColor(${index})">
+                            <div class="card-info" onclick="selectColor(${index})">
                                 <div>
                                     <div class="variant-title">${sku.specText}</div>
                                     <div class="size-container">${sizeButtonsHTML}</div>
@@ -150,21 +150,21 @@
             }
         }
 
-        function selectColor(index, sku) {
+        function selectColor(index) {
             document.querySelectorAll('.card').forEach(c => c.classList.remove('selected'));
             document.getElementById(`card-${index}`).classList.add('selected');
-            selectedSku = sku;
+            selectedSku = skusList[index];
             updateMainButton();
         }
 
-        function changeSize(cardIndex, size, btnElement) {
+        function changeSize(cardIndex, size) {
             const card = document.getElementById(`card-${cardIndex}`);
             card.querySelectorAll('.size-btn').forEach(b => b.classList.remove('active'));
-            btnElement.classList.add('active');
             
-            const skuData = JSON.parse(decodeURIComponent(urlParams.get('skus')))[cardIndex];
-            selectColor(cardIndex, skuData);
+            const activeBtn = card.querySelector(`#btn-${cardIndex}-${size}`);
+            if(activeBtn) { activeBtn.classList.add('active'); }
             
+            selectColor(cardIndex);
             selectedSize = size;
             updateMainButton();
         }
@@ -178,10 +178,17 @@
             }
         }
 
+        // 🔥 JAVASCRIPT XATOSI TO'G'RILANDI: sendData xatosiz muloqot qiladi!
         if(tg) {
             tg.onEvent('mainButtonClicked', function(){
                 if (selectedSku && selectedSize) {
-                    const resultData = { ...selectedSku, "selected_size": selectedSize };
+                    const resultData = {
+                        "specText": selectedSku.specText,
+                        "imageUrl": selectedSku.imageUrl,
+                        "price_uzs": selectedSku.price_uzs,
+                        "selected_size": selectedSize
+                    };
+                    // Ma'lumotni Telegram botga qaytaramiz
                     tg.sendData(JSON.stringify(resultData));
                     tg.close();
                 } else if (!selectedSize) {
