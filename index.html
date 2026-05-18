@@ -7,7 +7,7 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
             background-color: #f4f6f9;
             margin: 0;
             padding: 0;
@@ -21,11 +21,10 @@
             background: #ffffff;
             min-height: 100vh;
             box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-            padding-bottom: 90px;
+            padding-bottom: 95px;
             position: relative;
             box-sizing: border-box;
         }
-        /* Asosiy Rasm Oynasi */
         .image-viewer {
             width: 100%;
             background-color: #f8f9fa;
@@ -42,7 +41,6 @@
             object-fit: cover;
             display: block;
         }
-        /* Kontent qismi */
         .details-box {
             padding: 20px;
         }
@@ -59,6 +57,16 @@
             color: #e67e22;
             margin-bottom: 15px;
         }
+        .product-desc {
+            font-size: 13px;
+            color: #666;
+            line-height: 1.5;
+            background: #f8f9fa;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border-left: 3px solid #e67e22;
+        }
         .section-title {
             font-size: 13px;
             font-weight: 700;
@@ -67,11 +75,7 @@
             letter-spacing: 0.8px;
             margin-bottom: 12px;
             margin-top: 20px;
-            display: flex;
-            align-items: center;
-            gap: 5px;
         }
-        /* Rang variantlari (Turlari) */
         .options-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -110,7 +114,6 @@
             line-height: 1.2;
             color: #2c3e50;
         }
-        /* O'lchamlar (Razmerlar) */
         .sizes-flex {
             display: flex;
             flex-wrap: wrap;
@@ -133,7 +136,6 @@
             color: #fff;
             border-color: #2c3e50;
         }
-        /* Pastki fiksirlangan Buyurtma knopkasi */
         .footer-action {
             position: fixed;
             bottom: 0;
@@ -179,6 +181,9 @@
         <div class="product-title" id="display-title">Yuklanmoqda...</div>
         <div class="product-price" id="display-price">- SO'M</div>
         
+        <div class="section-title">ℹ️ Mahsulot tavsifi:</div>
+        <div class="product-desc" id="display-desc">Tavsif yuklanmoqda...</div>
+
         <hr style="border: 0; height: 1px; background: #f2f4f4; margin: 15px 0;">
 
         <div class="section-title">🎨 Rangni (Turini) tanlang:</div>
@@ -194,40 +199,33 @@
 </div>
 
 <script>
-    // Telegram Mini App oynasini sozlash
     const tg = window.Telegram.WebApp;
     tg.expand(); 
     tg.ready();
 
-    // URL orqali kelgan JSON ma'lumotni ochish
     const urlParams = new URLSearchParams(window.location.search);
     const rawSkus = urlParams.get('skus');
+    const rawDesc = urlParams.get('desc');
+    const rawTitle = urlParams.get('title');
 
     let skuData = [];
     let selectedSkuIndex = 0;
     let selectedSize = "";
 
     if (rawSkus) {
-        try {
-            skuData = JSON.parse(decodeURIComponent(rawSkus));
-        } catch (e) {
-            console.error("JSON Error:", e);
-        }
+        try { skuData = JSON.parse(decodeURIComponent(rawSkus)); } catch (e) { console.error(e); }
     }
 
-    // Mini App sahifasini qurish
     function initApp() {
-        if (!skuData || skuData.length === 0) {
-            document.getElementById('display-title').innerText = "SaMus Trend Model";
-            return;
-        }
+        // Dinamik sarlavha va tavsifni o'rnatish
+        document.getElementById('display-title').innerText = rawTitle ? decodeURIComponent(rawTitle) : "Premium SaMus Collection";
+        document.getElementById('display-desc').innerText = rawDesc ? decodeURIComponent(rawDesc) : "Maftunkor uslub va yuqori sifatli materiallardan tikilgan premium model.";
 
-        document.getElementById('display-title').innerText = "Premium SaMus Collection";
-        
+        if (!skuData || skuData.length === 0) return;
+
         const optionsContainer = document.getElementById('sku-options-container');
         optionsContainer.innerHTML = "";
 
-        // Variantlarni ekranga chiqarish
         skuData.forEach((sku, index) => {
             const card = document.createElement('div');
             card.className = `option-card ${index === 0 ? 'active' : ''}`;
@@ -240,31 +238,25 @@
             optionsContainer.appendChild(card);
         });
 
-        // Dastlabki birinchi variantni tanlash
         selectSku(0);
     }
 
-    // Variant o'zgarganda ishlovchi funksiya
     function selectSku(index) {
         selectedSkuIndex = index;
         const currentSku = skuData[index];
 
         const cards = document.querySelectorAll('.option-card');
-        cards.forEach((c, i) => {
-            c.className = `option-card ${i === index ? 'active' : ''}`;
-        });
+        cards.forEach((c, i) => { c.className = `option-card ${i === index ? 'active' : ''}`; });
 
         document.getElementById('main-product-img').src = currentSku.imageUrl;
         document.getElementById('display-price').innerText = currentSku.price_uzs;
 
-        // Razmerlar blokini dinamik to'ldirish
         const sizesContainer = document.getElementById('sizes-container');
         sizesContainer.innerHTML = "";
         selectedSize = ""; 
 
         if (currentSku.sizes) {
             const sizeList = currentSku.sizes.split('-');
-            
             sizeList.forEach((size) => {
                 const cleanSize = size.trim();
                 if (cleanSize !== "") {
@@ -274,7 +266,6 @@
                     btn.onclick = () => {
                         const activeBtn = sizesContainer.querySelector('.size-btn.active');
                         if (activeBtn) activeBtn.classList.remove('active');
-                        
                         btn.classList.add('active');
                         selectedSize = cleanSize;
                     };
@@ -282,28 +273,15 @@
                 }
             });
 
-            // Birinchi razmerni avtomat tanlash
-            if (sizesContainer.firstChild) {
-                sizesContainer.firstChild.click();
-            }
+            if (sizesContainer.firstChild) sizesContainer.firstChild.click();
         }
     }
 
-    // 🎯 MA'LUMOTNI TELEGRAMGA YUBORISH FUNKSIYASI
     function sendOrderData() {
-        if (!skuData || skuData.length === 0) {
-            tg.close();
-            return;
-        }
-
+        if (!skuData || skuData.length === 0) { tg.close(); return; }
         const currentSku = skuData[selectedSkuIndex];
+        if (!selectedSize) { alert("Iltimos, o'lcham tanlang!"); return; }
 
-        if (!selectedSize) {
-            alert("Iltimos, o'lcham (razmer) tanlang!");
-            return;
-        }
-
-        // Botga ketadigan tayyor JSON paket
         const resultData = {
             specText: currentSku.specText,
             imageUrl: currentSku.imageUrl,
@@ -311,16 +289,10 @@
             selected_size: selectedSize
         };
 
-        // Telegram xavfsiz kanali orqali botga jo'natish
         try {
             tg.sendData(JSON.stringify(resultData));
-            // Jo'natish ulgurishi uchun mitti kechikish bilan ilovani yopish
-            setTimeout(() => {
-                tg.close();
-            }, 150);
-        } catch (error) {
-            alert("Xatolik yuz berdi: " + error.message);
-        }
+            setTimeout(() => { tg.close(); }, 150);
+        } catch (error) { alert("Xatolik: " + error.message); }
     }
 
     window.onload = initApp;
