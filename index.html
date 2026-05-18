@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SaMus Fashion — Mahsulot Turlari</title>
+    <title>SaMus Fashion — Mahsulot oynasi</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         body {
@@ -12,6 +12,8 @@
             margin: 0;
             padding: 0;
             color: #333;
+            -webkit-user-select: none;
+            user-select: none;
         }
         .container {
             max-width: 500px;
@@ -19,26 +21,28 @@
             background: #ffffff;
             min-height: 100vh;
             box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-            padding-bottom: 80px;
+            padding-bottom: 90px;
+            position: relative;
+            box-sizing: border-box;
         }
-        /* Rasm oynasi */
+        /* Asosiy Rasm Oynasi */
         .image-viewer {
             width: 100%;
-            position: relative;
-            background-color: #f0f0f0;
+            background-color: #f8f9fa;
             display: flex;
             align-items: center;
             justify-content: center;
+            overflow: hidden;
+            border-bottom: 1px solid #f2f4f4;
         }
         .image-viewer img {
             width: 100%;
             height: auto;
-            max-height: 400px;
+            max-height: 380px;
             object-fit: cover;
             display: block;
-            transition: all 0.3s ease;
         }
-        /* Mahsulot ma'lumotlari */
+        /* Kontent qismi */
         .details-box {
             padding: 20px;
         }
@@ -53,36 +57,36 @@
             font-size: 22px;
             font-weight: 800;
             color: #e67e22;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
         }
-        /* Sarlavhalar */
         .section-title {
-            font-size: 14px;
-            font-weight: 600;
+            font-size: 13px;
+            font-weight: 700;
             color: #7f8c8d;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 10px;
-            margin-top: 15px;
+            letter-spacing: 0.8px;
+            margin-bottom: 12px;
+            margin-top: 20px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
         }
         /* Rang variantlari (Turlari) */
         .options-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 12px;
-            margin-bottom: 20px;
+            gap: 10px;
+            margin-bottom: 15px;
         }
         .option-card {
-            border: 2px solid #eaeded;
-            border-radius: 10px;
-            padding: 8px;
+            border: 2px solid #f2f4f4;
+            border-radius: 12px;
+            padding: 6px;
             text-align: center;
             cursor: pointer;
             transition: all 0.2s ease;
             background: #fff;
-        }
-        .option-card:hover {
-            border-color: #bdc3c7;
+            box-sizing: border-box;
         }
         .option-card.active {
             border-color: #e67e22;
@@ -90,9 +94,9 @@
         }
         .option-card img {
             width: 100%;
-            height: 80px;
+            height: 75px;
             object-fit: cover;
-            border-radius: 6px;
+            border-radius: 8px;
             margin-bottom: 6px;
         }
         .option-card span {
@@ -104,30 +108,32 @@
             overflow: hidden;
             text-overflow: ellipsis;
             line-height: 1.2;
+            color: #2c3e50;
         }
         /* O'lchamlar (Razmerlar) */
         .sizes-flex {
             display: flex;
             flex-wrap: wrap;
-            gap: 10px;
-            margin-bottom: 25px;
+            gap: 8px;
+            margin-bottom: 20px;
         }
         .size-btn {
-            padding: 10px 16px;
+            padding: 10px 14px;
             border: 1px solid #d5dbdb;
             border-radius: 8px;
             background: #fff;
             font-size: 13px;
             font-weight: 600;
             cursor: pointer;
+            color: #34495e;
             transition: all 0.15s ease;
         }
         .size-btn.active {
-            background-color: #111;
+            background-color: #2c3e50;
             color: #fff;
-            border-color: #111;
+            border-color: #2c3e50;
         }
-        /* Tasdiqlash tugmasi */
+        /* Pastki fiksirlangan Buyurtma knopkasi */
         .footer-action {
             position: fixed;
             bottom: 0;
@@ -136,25 +142,29 @@
             max-width: 500px;
             margin: 0 auto;
             background: #fff;
-            padding: 15px;
-            box-shadow: 0 -4px 15px rgba(0,0,0,0.05);
+            padding: 12px 20px;
+            box-shadow: 0 -4px 12px rgba(0,0,0,0.05);
             box-sizing: border-box;
+            z-index: 999;
         }
         .submit-btn {
             width: 100%;
             background-color: #e67e22;
             color: white;
             border: none;
-            padding: 15px;
+            padding: 14px;
             font-size: 16px;
             font-weight: 700;
-            border-radius: 12px;
+            border-radius: 10px;
             cursor: pointer;
-            box-shadow: 0 4px 12px rgba(230,126,34,0.3);
+            box-shadow: 0 4px 10px rgba(230,126,34,0.25);
             transition: all 0.2s ease;
+            display: block;
+            text-align: center;
         }
         .submit-btn:active {
             transform: scale(0.98);
+            background-color: #d35400;
         }
     </style>
 </head>
@@ -162,22 +172,20 @@
 
 <div class="container">
     <div class="image-viewer">
-        <img id="main-product-img" src="https://images.unsplash.com/photo-1519457431-44ccd64a579b?w=500" alt="SaMus">
+        <img id="main-product-img" src="https://images.unsplash.com/photo-1519457431-44ccd64a579b?w=600" alt="SaMus">
     </div>
 
     <div class="details-box">
         <div class="product-title" id="display-title">Yuklanmoqda...</div>
         <div class="product-price" id="display-price">- SO'M</div>
         
-        <hr style="border: 0; height: 1px; background: #eaeded; margin: 20px 0;">
+        <hr style="border: 0; height: 1px; background: #f2f4f4; margin: 15px 0;">
 
         <div class="section-title">🎨 Rangni (Turini) tanlang:</div>
-        <div class="options-grid" id="sku-options-container">
-            </div>
+        <div class="options-grid" id="sku-options-container"></div>
 
         <div class="section-title">📐 O'lchamni (Razmer) tanlang:</div>
-        <div class="sizes-flex" id="sizes-container">
-            </div>
+        <div class="sizes-flex" id="sizes-container"></div>
     </div>
 
     <div class="footer-action">
@@ -186,11 +194,12 @@
 </div>
 
 <script>
-    // Telegram Web Appni ishga tushirish
+    // Telegram Mini App oynasini sozlash
     const tg = window.Telegram.WebApp;
-    tg.expand(); // Ilovani to'liq ekranga ochish
+    tg.expand(); 
+    tg.ready();
 
-    // URL parametrlarni o'qish (Python yuborgan ma'lumotlar)
+    // URL orqali kelgan JSON ma'lumotni ochish
     const urlParams = new URLSearchParams(window.location.search);
     const rawSkus = urlParams.get('skus');
 
@@ -201,26 +210,24 @@
     if (rawSkus) {
         try {
             skuData = JSON.parse(decodeURIComponent(rawSkus));
-            console.log("Muvaffaqiyatli SKU yuklandi:", skuData);
         } catch (e) {
-            console.error("JSON parslashda xatolik:", e);
+            console.error("JSON Error:", e);
         }
     }
 
-    // Ekran elementlarini render qilish
+    // Mini App sahifasini qurish
     function initApp() {
         if (!skuData || skuData.length === 0) {
             document.getElementById('display-title').innerText = "SaMus Trend Model";
             return;
         }
 
-        // Birinchi model nomini chiroyli o'rnatish
         document.getElementById('display-title').innerText = "Premium SaMus Collection";
         
         const optionsContainer = document.getElementById('sku-options-container');
         optionsContainer.innerHTML = "";
 
-        // 1. Turlarni (Rang kartochkalarini) yaratish
+        // Variantlarni ekranga chiqarish
         skuData.forEach((sku, index) => {
             const card = document.createElement('div');
             card.className = `option-card ${index === 0 ? 'active' : ''}`;
@@ -233,61 +240,58 @@
             optionsContainer.appendChild(card);
         });
 
-        // Birinchi turni faollashtirish
+        // Dastlabki birinchi variantni tanlash
         selectSku(0);
     }
 
-    // 2. Foydalanuvchi turni (rangni) o'zgartirganda ishlaydigan funksiya
+    // Variant o'zgarganda ishlovchi funksiya
     function selectSku(index) {
         selectedSkuIndex = index;
         const currentSku = skuData[index];
 
-        // Kartochkalar klassini yangilash
         const cards = document.querySelectorAll('.option-card');
         cards.forEach((c, i) => {
             c.className = `option-card ${i === index ? 'active' : ''}`;
         });
 
-        // Rasm va narxni dinamik o'zgartirish
         document.getElementById('main-product-img').src = currentSku.imageUrl;
         document.getElementById('display-price').innerText = currentSku.price_uzs;
 
-        // 3. SHU RANGGA TEGISHLI HAQIQIY RAZMERLARNI CHIQARISH 🧠
+        // Razmerlar blokini dinamik to'ldirish
         const sizesContainer = document.getElementById('sizes-container');
         sizesContainer.innerHTML = "";
-        selectedSize = ""; // Reset
+        selectedSize = ""; 
 
         if (currentSku.sizes) {
-            // "66 sm-73 sm-80 sm" ko'rinishidagi matnni bo'laklarga ajratamiz
             const sizeList = currentSku.sizes.split('-');
             
             sizeList.forEach((size) => {
-                if (size.strip !== "") {
+                const cleanSize = size.trim();
+                if (cleanSize !== "") {
                     const btn = document.createElement('button');
                     btn.className = "size-btn";
-                    btn.innerText = size;
+                    btn.innerText = cleanSize;
                     btn.onclick = () => {
-                        // Oldingi faol o'lchamni o'chirish
                         const activeBtn = sizesContainer.querySelector('.size-btn.active');
                         if (activeBtn) activeBtn.classList.remove('active');
                         
                         btn.classList.add('active');
-                        selectedSize = size;
+                        selectedSize = cleanSize;
                     };
                     sizesContainer.appendChild(btn);
                 }
             });
 
-            // Birinchi o'lchamni avtomat tanlab qo'yish
+            // Birinchi razmerni avtomat tanlash
             if (sizesContainer.firstChild) {
                 sizesContainer.firstChild.click();
             }
         }
     }
 
-    // 4. Buyurtmani Telegram botga qaytarib yuborish
+    // 🎯 MA'LUMOTNI TELEGRAMGA YUBORISH FUNKSIYASI
     function sendOrderData() {
-        if (skuData.length === 0) {
+        if (!skuData || skuData.length === 0) {
             tg.close();
             return;
         }
@@ -299,7 +303,7 @@
             return;
         }
 
-        // Botga ketadigan buyurtma ob'ekti
+        // Botga ketadigan tayyor JSON paket
         const resultData = {
             specText: currentSku.specText,
             imageUrl: currentSku.imageUrl,
@@ -307,11 +311,18 @@
             selected_size: selectedSize
         };
 
-        // Ma'lumotni jo'natish va Mini Appni yopish
-        tg.sendData(JSON.stringify(resultData));
+        // Telegram xavfsiz kanali orqali botga jo'natish
+        try {
+            tg.sendData(JSON.stringify(resultData));
+            // Jo'natish ulgurishi uchun mitti kechikish bilan ilovani yopish
+            setTimeout(() => {
+                tg.close();
+            }, 150);
+        } catch (error) {
+            alert("Xatolik yuz berdi: " + error.message);
+        }
     }
 
-    // Dasturni ishga tushirish
     window.onload = initApp;
 </script>
 </body>
